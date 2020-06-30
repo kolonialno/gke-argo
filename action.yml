@@ -17,6 +17,10 @@ inputs:
   cluster_name:
     description: The name of your GKE K8s cluster
     require: true
+  namespace:
+    description: The namespace to run the workflow in
+    require: optional
+    default: default
   workflow_yaml_path:
     description: The full path name including the filename of the YAML file that describes the workflow you want to run on Argo.  This should be relative to the root of the GitHub repository where the Action is triggered.
     require: true
