@@ -105,4 +105,4 @@ echo "executing command: $ARGO_CMD"
 eval $ARGO_CMD
 
 #emit the outputs
-echo "::set-output name=WORKFLOW_URL::$INPUT_ARGO_URL/$WORKFLOW_NAME"
+echo "::set-output name=WORKFLOW_URL::$INPUT_ARGO_URL/$INPUT_NAMESPACE/$WORKFLOW_NAME"
