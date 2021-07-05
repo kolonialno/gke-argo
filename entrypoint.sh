@@ -52,6 +52,7 @@ check_env "INPUT_PROJECT_ID"
 check_env "INPUT_LOCATION_ZONE"
 check_env "INPUT_CLUSTER_NAME"
 check_env "INPUT_WORKFLOW_YAML_PATH"
+check_env "INPUT_NAMESPACE"
 cd $GITHUB_WORKSPACE
 check_file_exists $INPUT_WORKFLOW_YAML_PATH
 
@@ -99,9 +100,9 @@ else
 fi
 
 # Execute the command
-ARGO_CMD="argo submit $INPUT_WORKFLOW_YAML_PATH --name $WORKFLOW_NAME $PARAM_FILE_CMD"
+ARGO_CMD="argo submit --namespace $INPUT_NAMESPACE $INPUT_WORKFLOW_YAML_PATH --name $WORKFLOW_NAME $PARAM_FILE_CMD"
 echo "executing command: $ARGO_CMD"
 eval $ARGO_CMD
 
 #emit the outputs
-echo "::set-output name=WORKFLOW_URL::$INPUT_ARGO_URL/$WORKFLOW_NAME"
+echo "::set-output name=WORKFLOW_URL::$INPUT_ARGO_URL/$INPUT_NAMESPACE/$WORKFLOW_NAME"
