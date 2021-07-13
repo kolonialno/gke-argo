@@ -1,7 +1,7 @@
 FROM google/cloud-sdk:alpine
 
 # Download and unzip Argo CLI
-RUN curl -sSL https://github.com/argoproj/argo-workflows/releases/download/v3.0.7/argo-linux-amd64.gz
+RUN curl -sSL -O https://github.com/argoproj/argo-workflows/releases/download/v3.0.7/argo-linux-amd64.gz
 RUN gunzip argo-linux-amd64.gz
 
 # Make executable and move to path
