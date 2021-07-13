@@ -58,7 +58,7 @@ jobs:
         PROJECT_ID: ${{ secrets.GCLOUD_PROJECT_ID }}
         LOCATION_ZONE: "us-west1-a"
         CLUSTER_NAME: "github-actions-demo"
-        WORKFLOW_YAML_PATH: argo/nlp-model.yaml # the argo workflow file relative to the repo's root.
+        ARGO_SUBMIT_ARGS: argo/nlp-model.yaml # the argo workflow file relative to the repo's root.
         PARAMETER_FILE_PATH: argo/arguments-parameters.yml # optional parameter file.  This can be built dynamically inside the action or appended to from an existing file in the repo.
         
     # A comment is made on the PR with the URL to the Argo dashboard for the run.
@@ -78,7 +78,7 @@ jobs:
 3. `PROJECT_ID`: Name of the GCP Project where the GKE K8s cluster resides. 
 4. `LOCATION_ZONE`: The location-zone where your GKE K8s cluster resides, for example, `us-west1-a`
 5. `CLUSTER_NAME`: The name of your GKE K8s cluster
-6. `WORKFLOW_YAML_PATH`: The full path name including the filename of the YAML file that describes the workflow you want to run on Argo.  This should be relative to the root of the GitHub repository where the Action is triggered.
+6. `ARGO_SUBMIT_ARGS`: The arguments to pass to 'argo submit'. Could be the full path name including the filename of the YAML file that describes the workflow you want to run on Argo.  This should be relative to the root of the GitHub repository where the Action is triggered.
 
 ### Optional Inputs
 

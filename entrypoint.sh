@@ -22,28 +22,9 @@ function check_file_exists() {
     fi
 }
 
-function yaml_get_generateName {
-   local prefix=$2
-   local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
-   sed -ne "s|^\($s\):|\1|" \
-        -e "s|^\($s\)\($w\)$s:$s[\"']\(.*\)[\"']$s\$|\1$fs\2$fs\3|p" \
-        -e "s|^\($s\)\($w\)$s:$s\(.*\)$s\$|\1$fs\2$fs\3|p"  $1 |
-   awk -F$fs '{
-      indent = length($1)/2;
-      vname[indent] = $2;
-      for (i in vname) {if (i > indent) {delete vname[i]}}
-      if (length($3) > 0) {
-         vn=""; for (i=0; i<indent; i++) {vn=(vn)(vname[i])("_")}
-         printf("%s%s%s=\"%s\"\n", "'$prefix'",vn, $2, $3);
-      }
-   }' | grep metadata_generateName= | cut -d \" -f2
-}
-
 randomstring(){
     cat /dev/urandom | env LC_CTYPE=C tr -dc 'a-z' | fold -w 7 | head -n 1
 }
-
-############ Validate Inputs ############
 
 # Check the presence of all required environment variables and files
 check_env "INPUT_ARGO_URL"
@@ -51,10 +32,9 @@ check_env "INPUT_APPLICATION_CREDENTIALS"
 check_env "INPUT_PROJECT_ID"
 check_env "INPUT_LOCATION_ZONE"
 check_env "INPUT_CLUSTER_NAME"
-check_env "INPUT_WORKFLOW_YAML_PATH"
+check_env "INPUT_ARGO_SUBMIT_ARGS"
 check_env "INPUT_NAMESPACE"
 cd $GITHUB_WORKSPACE
-check_file_exists $INPUT_WORKFLOW_YAML_PATH
 
 # Allow SHA OVERRIDE
 if [ ! -z "$INPUT_SHA" ]; then
@@ -64,21 +44,7 @@ else
     SHA=$GITHUB_SHA
 fi
 
-
-# Validate the contents of the Argo Workflow File for the generateName field
-RUN_NAME_PREFIX=$(yaml_get_generateName $INPUT_WORKFLOW_YAML_PATH)
-if [ -z "${RUN_NAME_PREFIX-}" ]; then
-   echo "You must specify the metadata.generateName (not metadata.name) field in your yaml workflow for this Action."
-   exit 1
-fi
-
-############ Construct the Run ID ############
-
-# run id is {metadata.generateName}-{shortSHA}-{randomstring}
-shortSHA=$(echo "${SHA}" | cut -c1-7)
-WORKFLOW_NAME=${RUN_NAME_PREFIX}-${shortSHA}-$(randomstring)
-
-############ Authenticate to GKE ############
+# Authenticate to GKE
 
 # Recover Application Credentials For GKE Authentication
 echo "$INPUT_APPLICATION_CREDENTIALS" | base64 -d > /tmp/account.json
@@ -88,7 +54,7 @@ gcloud auth activate-service-account --key-file=/tmp/account.json
 gcloud config set project "$INPUT_PROJECT_ID"
 gcloud container clusters get-credentials "$INPUT_CLUSTER_NAME" --zone "$INPUT_LOCATION_ZONE" --project "$INPUT_PROJECT_ID"
 
-############ Instantiate Argo Workflow ############
+# Instantiate Argo Workflow
 
 # If the optional argument PARAMETER_FILE_PATH is supplied, add additional -f <filename> argument to `argo submit` command
 if [ ! -z "$INPUT_PARAMETER_FILE_PATH" ]; then
@@ -100,9 +66,11 @@ else
 fi
 
 # Execute the command
-ARGO_CMD="argo submit --namespace $INPUT_NAMESPACE $INPUT_WORKFLOW_YAML_PATH --name $WORKFLOW_NAME $PARAM_FILE_CMD"
+ARGO_CMD="argo submit --namespace $INPUT_NAMESPACE $INPUT_ARGO_SUBMIT_ARGS $PARAM_FILE_CMD"
 echo "executing command: $ARGO_CMD"
-eval $ARGO_CMD
+ARGO_CMD_OUT=$(eval "$ARGO_CMD")
+echo "$ARGO_CMD_OUT"
+WORKFLOW_NAME=$(echo "$ARGO_CMD_OUT" | grep 'Name:' | sed 's/ //g')
 
-#emit the outputs
+# Emit the outputs
 echo "::set-output name=WORKFLOW_URL::$INPUT_ARGO_URL/$INPUT_NAMESPACE/$WORKFLOW_NAME"

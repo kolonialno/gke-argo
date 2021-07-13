@@ -21,8 +21,8 @@ inputs:
     description: The namespace to run the workflow in
     require: optional
     default: default
-  workflow_yaml_path:
-    description: The full path name including the filename of the YAML file that describes the workflow you want to run on Argo.  This should be relative to the root of the GitHub repository where the Action is triggered.
+  argo_submit_args:
+    description: The arguments to pass to 'argo submit'. Could be the full path name including the filename of the YAML file that describes the workflow you want to run on Argo. This should be relative to the root of the GitHub repository where the Action is triggered.
     require: true
   parameter_file_path:
     description: Parameter file that allows you to change variables in your workflow file.
